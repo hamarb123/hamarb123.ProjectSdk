@@ -1,0 +1,9 @@
+# Auto detect text files force LF endings
+* text=auto eol=lf
+
+# Force crlf for:
+*.sln eol=crlf
+*.csproj eol=crlf
+*.props eol=crlf
+*.nuspec eol=crlf
+*.targets eol=crlf

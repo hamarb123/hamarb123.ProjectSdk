@@ -1,0 +1,20 @@
+﻿<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+	<metadata>
+		<id>hamarb123.ProjectSdk</id>
+		<version>1.0.44</version>
+		<authors>hamarb123.ProjectSdk</authors>
+		<requireLicenseAcceptance>true</requireLicenseAcceptance>
+		<license type="expression">MIT</license>
+		<description>
+			The core custom project sdk used by many of hamarb123's projects.
+		</description>
+		<copyright>Copyright © Hamish Arblaster 2021-2024</copyright>
+		<repository url="https://github.com/hamarb123/hamarb123.ProjectSdk" />
+		<packageTypes>
+			<packageType name="MSBuildSdk"/>
+		</packageTypes>
+	</metadata>
+	<files>
+		<file src="Sdk\**\*" target="Sdk"/>
+	</files>
+</package>

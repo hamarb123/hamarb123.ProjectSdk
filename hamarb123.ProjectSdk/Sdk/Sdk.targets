@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<!--Include custom WaningsAsErrors items-->
+	<PropertyGroup>
+		<WarningsAsErrors>$(WarningsAsErrors),@(CustomWarningsAsErrors, ',')</WarningsAsErrors>
+	</PropertyGroup>
+
+	<!--NB: this only works properly when committed-->
+	<Target Name="SetAssemblyVersion" BeforeTargets="BeforeBuild;CoreGenerateAssemblyInfo" Condition=" '$(GenerateVersionCodeCustom)' == 'true' Or '$(GenerateCoreAttributeTypes)' == 'true' ">
+		<Exec Command="git rev-parse HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" WorkingDirectory="$(MSBuildProjectDirectory)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitHash" />
+		</Exec>
+		<Exec Command="git name-rev --name-only HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" WorkingDirectory="$(MSBuildProjectDirectory)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranchOutput" />
+		</Exec>
+		<CreateProperty Value="$(GitBranchOutput.Split(`~`)[0])" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<Output TaskParameter="Value" PropertyName="GitBranchTrimmed1" />
+		</CreateProperty>
+		<CreateProperty Value="$(GitBranchTrimmed1.SubString(15))" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(GitBranchTrimmed1.Replace(`\`, `/`).StartsWith(`remotes/origin/`))' == 'true' ">
+			<Output TaskParameter="Value" PropertyName="GitBranchTrimmed2" />
+		</CreateProperty>
+		<CreateProperty Value="$(GitBranchTrimmed1)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(GitBranchTrimmed1.Replace(`\`, `/`).StartsWith(`remotes/origin/`))' == 'false' ">
+			<Output TaskParameter="Value" PropertyName="GitBranchTrimmed2" />
+		</CreateProperty>
+		<CreateProperty Value="$(GitBranchTrimmed2.Replace(`\`, `/`).Replace(`/`, `-`))" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<Output TaskParameter="Value" PropertyName="GitBranch" />
+		</CreateProperty>
+		<CreateProperty Value="-$(VersionSuffix)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(VersionSuffix)' != '' ">
+			<Output TaskParameter="Value" PropertyName="VersionSuffixWithDash" />
+		</CreateProperty>
+		<CreateProperty Value="$(VersionPrefix)$(VersionSuffixWithDash)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<Output TaskParameter="Value" PropertyName="Version" />
+		</CreateProperty>
+		<CreateProperty Value="$(Version)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<Output TaskParameter="Value" PropertyName="PackageVersion" />
+		</CreateProperty>
+		<CreateProperty Value="global::" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(MSBuildProjectExtension)' == '.csproj' ">
+			<Output TaskParameter="Value" PropertyName="AssemblyVersionIdentifierV1AttributeTypePrefix" />
+		</CreateProperty>
+		<CreateProperty Value="Global." Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(MSBuildProjectExtension)' == '.vbproj' ">
+			<Output TaskParameter="Value" PropertyName="AssemblyVersionIdentifierV1AttributeTypePrefix" />
+		</CreateProperty>
+		<ItemGroup Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<hamarb123ModuleAttribute Include="$(AssemblyVersionIdentifierV1AttributeType)hamarb123.Base.Attributes.AssemblyVersionIdentifierV1Attribute">
+				<_Parameter1>$(AssemblyTitle)</_Parameter1>
+				<_Parameter2>$(VersionPrefix)</_Parameter2>
+				<_Parameter3>$(VersionSuffix)</_Parameter3>
+				<_Parameter4>$(GitBranch)</_Parameter4>
+				<_Parameter5>$(GitHash)</_Parameter5>
+			</hamarb123ModuleAttribute>
+		</ItemGroup>
+		<MakeDir Directories="$(IntermediateOutputPath)$(MSBuildProjectName)" Condition="!Exists('$(IntermediateOutputPath)$(MSBuildProjectName)')" />
+		<CreateProperty Value="$(IntermediateOutputPath)$(MSBuildProjectName).hamarb123ModuleInfo$(DefaultLanguageSourceExtension)">
+			<Output TaskParameter="Value" PropertyName="hamarb123ModuleInfoFile" />
+		</CreateProperty>
+		<WriteCodeFragment AssemblyAttributes="@(hamarb123ModuleAttribute)" Language="$(Language)" OutputFile="$(hamarb123ModuleInfoFile)">
+			<Output TaskParameter="OutputFile" ItemName="hamarb123ModuleInfoFileWrites" />
+		</WriteCodeFragment>
+		<CreateProperty Value="@(hamarb123ModuleInfoFileWrites, ';')" Condition=" '@(hamarb123ModuleInfoFileWrites)' != '' ">
+			<Output TaskParameter="Value" PropertyName="hamarb123ModuleInfoFile" />
+		</CreateProperty>
+		<CreateProperty Value="$(hamarb123ModuleInfoFile)">
+			<Output TaskParameter="Value" ItemName="Compile" />
+		</CreateProperty>
+		<Delete Files="$(hamarb123ModuleInfoFile)" Condition=" '@(hamarb123ModuleInfoFileWrites)' == '' And Exists('$(hamarb123ModuleInfoFile)') " />
+		<ReplaceAssemblyWithModule InputFilename="$(hamarb123ModuleInfoFile)" MSBuildProjectExtension="$(MSBuildProjectExtension)" GenerateVersionCodeCustom="$(GenerateVersionCodeCustom)" GenerateCoreAttributeTypes="$(GenerateCoreAttributeTypes)" GenerateCoreLicenseV1AttributeType="$(GenerateCoreLicenseV1AttributeType)" />
+		<CreateProperty Value="$(PackageDescription)%0A" Condition=" '$(PackageDescription)' != '' ">
+			<Output TaskParameter="Value" PropertyName="PackageDescription" />
+		</CreateProperty>
+		<CreateProperty Value="$(PackageDescription)Commit ID: $(GitBranch)%40$(GitHash).">
+			<Output TaskParameter="Value" PropertyName="PackageDescription" />
+		</CreateProperty>
+	</Target>
+
+	<!--Generate hamarb123.Core name-only version of specified attributes if requested-->
+	<UsingTask TaskName="ReplaceAssemblyWithModule" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup>
+			<InputFilename ParameterType="System.String" Required="true" />
+			<MSBuildProjectExtension ParameterType="System.String" Required="true" />
+			<GenerateVersionCodeCustom ParameterType="System.String" Required="true" />
+			<GenerateCoreAttributeTypes ParameterType="System.String" Required="true" />
+			<GenerateCoreLicenseV1AttributeType ParameterType="System.String" Required="true" />
+		</ParameterGroup>
+		<Task>
+			<Using Namespace="System" />
+			<Using Namespace="System.IO" />
+			<Using Namespace="System.Text.RegularExpressions" />
+			<Code Type="Fragment" Language="cs">
+				<![CDATA[
+//"<Assembly: " for VB
+//"[assembly: " for C#
+Regex r = null;
+string replacement = null;
+if (MSBuildProjectExtension == ".csproj")
+{
+	r = new Regex(@"((?!\n)|^)\[assembly: ");
+	replacement = "[module: ";
+}
+else if (MSBuildProjectExtension == ".vbproj")
+{
+	r = new Regex(@"((?!\n)|^)\<Assembly: ");
+	replacement = "<Module: ";
+}
+
+string contents = File.Exists(InputFilename) ? File.ReadAllText(InputFilename) : "";
+if (r != null)
+{
+	contents = r.Replace(contents, replacement);
+	var idx = contents.IndexOf(replacement);
+	string innerValue = null;
+	if (MSBuildProjectExtension == ".csproj")
+	{
+		innerValue = "\n#pragma warning disable CS0436 // Type conflicts with imported type\n";
+	}
+	if (idx >= 0 && innerValue != null)
+	{
+		contents = contents.Substring(0, idx) + innerValue + contents.Substring(idx);
+	}
+}
+
+bool GenerateLicensedV1AttributeClass = GenerateCoreAttributeTypes == "true" && GenerateCoreLicenseV1AttributeType == "true";
+bool GenerateAssemblyVersionIdentifierV1AttributeClass = GenerateCoreAttributeTypes == "true" && GenerateVersionCodeCustom == "true";
+
+if (GenerateLicensedV1AttributeClass)
+{
+	if (MSBuildProjectExtension == ".csproj")
+	{
+		contents += @"
+namespace hamarb123.Base.Licensing
+{
+	[global::System.AttributeUsageAttribute(global::System.AttributeTargets.Module, Inherited = false, AllowMultiple = true)]
+	[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+	internal sealed class LicensedV1Attribute : global::System.Attribute
+	{
+		private readonly string licenseText;
+		private readonly string projectName;
+		private readonly string projectUrl;
+		private readonly string licenseUrl;
+		private readonly string modifications;
+		private readonly string affiliationStatement;
+		private readonly string instructionsToObtainOriginal;
+		private readonly string referenceName;
+		private readonly string sublicenseReferenceName;
+		private readonly uint overrideAssurity;
+		private readonly bool disable;
+		private readonly int[] supportedOperatingSystems;
+
+#if NET5_0_OR_GREATER
+		[global::System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute(global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields, typeof(global::hamarb123.Base.Licensing.LicensedV1Attribute))]
+#endif
+		public LicensedV1Attribute(string licenseText, string projectName, string projectUrl = null, string licenseUrl = null, string modifications = null, string affiliationStatement = null, string instructionsToObtainOriginal = null, string referenceName = null, string sublicenseReferenceName = null, uint overrideAssurity = 0, bool disable = false, int[] supportedOperatingSystems = null)
+		{
+			this.licenseText = licenseText;
+			this.projectName = projectName;
+			this.projectUrl = projectUrl;
+			this.licenseUrl = licenseUrl;
+			this.modifications = modifications;
+			this.affiliationStatement = affiliationStatement;
+			this.instructionsToObtainOriginal = instructionsToObtainOriginal;
+			this.referenceName = referenceName;
+			this.sublicenseReferenceName = sublicenseReferenceName;
+			this.overrideAssurity = overrideAssurity;
+			this.disable = disable;
+			this.supportedOperatingSystems = supportedOperatingSystems;
+		}
+	}
+}
+";
+	}
+	else if (MSBuildProjectExtension == ".vbproj")
+	{
+		contents += @"
+Namespace Global.hamarb123.Base.Licensing
+	<Global.System.AttributeUsageAttribute(Global.System.AttributeTargets.[Module], Inherited:=False, AllowMultiple:=True)>
+	<Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Never)>
+	Friend NotInheritable Class LicensedV1Attribute
+		Inherits Global.System.Attribute
+
+		Private ReadOnly licenseText As String
+		Private ReadOnly projectName As String
+		Private ReadOnly projectUrl As String
+		Private ReadOnly licenseUrl As String
+		Private ReadOnly modifications As String
+		Private ReadOnly affiliationStatement As String
+		Private ReadOnly instructionsToObtainOriginal As String
+		Private ReadOnly referenceName As String
+		Private ReadOnly sublicenseReferenceName As String
+		Private ReadOnly overrideAssurity As UInteger
+		Private ReadOnly disable As Boolean
+		Private ReadOnly supportedOperatingSystems As Integer()
+
+#If NET5_0_OR_GREATER Then
+		<Global.System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute(Global.System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields, GetType(Global.hamarb123.Base.Licensing.LicensedV1Attribute))>
+#End If
+		Public Sub New(ByVal licenseText As String, ByVal projectName As String, ByVal Optional projectUrl As String = Nothing, ByVal Optional licenseUrl As String = Nothing, ByVal Optional modifications As String = Nothing, ByVal Optional affiliationStatement As String = Nothing, ByVal Optional instructionsToObtainOriginal As String = Nothing, ByVal Optional referenceName As String = Nothing, ByVal Optional sublicenseReferenceName As String = Nothing, ByVal Optional overrideAssurity As UInteger = 0, ByVal Optional disable As Boolean = False, ByVal Optional supportedOperatingSystems As Integer() = Nothing)
+			Me.licenseText = licenseText
+			Me.projectName = projectName
+			Me.projectUrl = projectUrl
+			Me.licenseUrl = licenseUrl
+			Me.modifications = modifications
+			Me.affiliationStatement = affiliationStatement
+			Me.instructionsToObtainOriginal = instructionsToObtainOriginal
+			Me.referenceName = referenceName
+			Me.sublicenseReferenceName = sublicenseReferenceName
+			Me.overrideAssurity = overrideAssurity
+			Me.disable = disable
+			Me.supportedOperatingSystems = supportedOperatingSystems
+		End Sub
+	End Class
+End Namespace
+";
+	}
+}
+
+if (GenerateAssemblyVersionIdentifierV1AttributeClass)
+{
+	if (MSBuildProjectExtension == ".csproj")
+	{
+		contents += @"
+namespace hamarb123.Base.Attributes
+{
+	[global::System.AttributeUsageAttribute(global::System.AttributeTargets.Module, Inherited = false, AllowMultiple = true)]
+	[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+	internal sealed class AssemblyVersionIdentifierV1Attribute : global::System.Attribute
+	{
+		private readonly string assemblyName;
+		private readonly string assemblyVersionPrefix;
+		private readonly string assemblyVersionSuffix;
+		private readonly string assemblyGitBranch;
+		private readonly string assemblyGitHash;
+
+#if NET5_0_OR_GREATER
+		[global::System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute(global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields, typeof(global::hamarb123.Base.Attributes.AssemblyVersionIdentifierV1Attribute))]
+#endif
+		public AssemblyVersionIdentifierV1Attribute(string assemblyName, string assemblyVersionPrefix, string assemblyVersionSuffix, string assemblyGitBranch, string assemblyGitHash)
+		{
+			this.assemblyName = assemblyName ?? throw new global::System.ArgumentNullException(nameof(assemblyName));
+			this.assemblyVersionPrefix = assemblyVersionPrefix ?? throw new global::System.ArgumentNullException(nameof(assemblyVersionPrefix));
+			this.assemblyVersionSuffix = assemblyVersionSuffix;
+			this.assemblyGitBranch = assemblyGitBranch;
+			this.assemblyGitHash = assemblyGitHash;
+		}
+	}
+}
+";
+	}
+	else if (MSBuildProjectExtension == ".vbproj")
+	{
+		contents += @"
+Namespace Global.hamarb123.Base.Attributes
+	<Global.System.AttributeUsageAttribute(Global.System.AttributeTargets.[Module], Inherited:=False, AllowMultiple:=True)>
+	<Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Never)>
+	Friend NotInheritable Class AssemblyVersionIdentifierV1Attribute
+		Inherits Global.System.Attribute
+
+		Private ReadOnly assemblyName As String
+		Private ReadOnly assemblyVersionPrefix As String
+		Private ReadOnly assemblyVersionSuffix As String
+		Private ReadOnly assemblyGitBranch As String
+		Private ReadOnly assemblyGitHash As String
+
+#If NET5_0_OR_GREATER Then
+		<Global.System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute(Global.System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields, GetType(Global.hamarb123.Base.Attributes.AssemblyVersionIdentifierV1Attribute))>
+#End If
+		Public Sub New(ByVal assemblyName As String, ByVal assemblyVersionPrefix As String, ByVal assemblyVersionSuffix As String, ByVal assemblyGitBranch As String, ByVal assemblyGitHash As String)
+			If assemblyName Is Nothing Then
+				Throw New Global.System.ArgumentNullException(NameOf(assemblyName))
+			End If
+			If assemblyVersionPrefix Is Nothing Then
+				Throw New Global.System.ArgumentNullException(NameOf(assemblyVersionPrefix))
+			End If
+			Me.assemblyName = assemblyName
+			Me.assemblyVersionPrefix = assemblyVersionPrefix
+			Me.assemblyVersionSuffix = assemblyVersionSuffix
+			Me.assemblyGitBranch = assemblyGitBranch
+			Me.assemblyGitHash = assemblyGitHash
+		End Sub
+	End Class
+End Namespace
+";
+	}
+}
+
+File.WriteAllText(InputFilename, contents.Replace("\r", ""));
+]]>
+			</Code>
+		</Task>
+	</UsingTask>
+
+	<Import Project="Sdk.targets" Sdk="$(AdditionalCustomSdk)" Condition=" '$(AdditionalCustomSdk)' != '' " Version="$(AdditionalCustomSdkVersion)" MinimumVersion="$(AdditionalCustomSdkMinimumVersion)" />
+	<Import Project="Sdk.targets" Sdk="$(OverrideDefaultSdk)" Version="$(OverrideDefaultSdkVersion)" MinimumVersion="$(OverrideDefaultSdkMinimumVersion)" />
+
+</Project>
