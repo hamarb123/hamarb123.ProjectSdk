@@ -9,7 +9,7 @@
 			The core custom project sdk used by many of hamarb123's projects.
 		</description>
 		<copyright>Copyright © Hamish Arblaster 2021-2024</copyright>
-		<repository url="https://github.com/hamarb123/hamarb123.ProjectSdk" />
+		<repository type="git" url="https://github.com/hamarb123/hamarb123.ProjectSdk" />
 		<packageTypes>
 			<packageType name="MSBuildSdk"/>
 		</packageTypes>
