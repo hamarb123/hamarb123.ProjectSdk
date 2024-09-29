@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
 	<PropertyGroup>
-		<OverrideDefaultSdk Condition=" '$(OverrideBaseSdk)' == '' ">Microsoft.NET.Sdk</OverrideDefaultSdk>
+		<OverrideDefaultSdk Condition=" '$(OverrideDefaultSdk)' == '' ">Microsoft.NET.Sdk</OverrideDefaultSdk>
 	</PropertyGroup>
 
 	<Import Project="Sdk.props" Sdk="$(OverrideDefaultSdk)" Version="$(OverrideDefaultSdkVersion)" MinimumVersion="$(OverrideDefaultSdkMinimumVersion)" />
