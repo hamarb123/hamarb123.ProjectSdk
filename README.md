@@ -7,7 +7,7 @@ NuGet link:
 
 # hamarb123.ProjectSdk versions known to work:
 
-- 1.0.45 - Fix typo for `OverrideDefaultSdk` in `Sdk.props` (initial public release)
+- 1.0.45 - Initial public release
 
 # Build Instructions
 
