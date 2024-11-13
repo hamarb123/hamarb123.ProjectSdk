@@ -8,6 +8,7 @@ NuGet link:
 # hamarb123.ProjectSdk versions known to work:
 
 - 1.0.45 - Initial public release
+- 1.0.46 - C# 13, add `CS0197` to NoWarn, add `<Features>strict</Features>`, remove legacy code, and set CsWinRT generation mode to opt-in by default
 
 # Build Instructions
 
