@@ -30,8 +30,9 @@
 		<LangVersion>13</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<NoWarn Condition=" $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp1.0')) ">$(NoWarn),0197</NoWarn>
-		<NoWarn>$(NoWarn),0628,1573,1591</NoWarn>
+		<NoWarn>$(NoWarn),0628,1573,1591,8500</NoWarn>
 		<Features>$(Features);strict</Features>
+		<CsWinRTAotOptimizerEnabled>OptIn</CsWinRTAotOptimizerEnabled> <!--Sets CsWinRT to opt-in mode by default-->
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.vbproj' ">
@@ -40,11 +41,10 @@
 		<RemoveIntegerChecks>true</RemoveIntegerChecks>
 		<CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
 		<Features>$(Features);strict</Features>
-		<CsWinRTAotOptimizerEnabled>OptIn</CsWinRTAotOptimizerEnabled> <!--Sets CsWinRT to opt-in mode by default-->
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="hamarb123.Analyzers" Version="1.2.0">
+		<PackageReference Include="hamarb123.Analyzers" Version="1.2.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
