@@ -4,43 +4,42 @@
 	<!--Include custom WaningsAsErrors items-->
 	<PropertyGroup>
 		<WarningsAsErrors>$(WarningsAsErrors),@(CustomWarningsAsErrors, ',')</WarningsAsErrors>
+		<_GitSearchDir>$(MSBuildProjectDirectory)</_GitSearchDir>
 	</PropertyGroup>
 
+	<!--Detect if in git repo - if we're not, then we want to skip extracting git info in SetAssemblyVersion - this just makes it easier to use the SDK on partially set up projects-->
+	<!--If the search breaks for users for some reason, then they can just override FoundGit-->
+	<Target Name="DetectGitRepo" Condition=" '$(FoundGit)' == '' ">
+		<PropertyGroup>
+			<FoundGit Condition=" Exists('$(_GitSearchDir)\.git') ">true</FoundGit>
+			<_GitSearchDir Condition=" '$(FoundGit)' == '' ">$([System.IO.Directory]::GetParent('$(_GitSearchDir)'))</_GitSearchDir>
+			<FoundGit Condition=" '$(FoundGit)' == '' And '$(_GitSearchDir)' == '' ">false</FoundGit>
+		</PropertyGroup>
+		<CallTargets Targets="DetectGitRepo" />
+	</Target>
+
 	<!--NB: this only works properly when committed-->
-	<Target Name="SetAssemblyVersion" BeforeTargets="BeforeBuild;CoreGenerateAssemblyInfo" Condition=" '$(GenerateVersionCodeCustom)' == 'true' Or '$(GenerateCoreAttributeTypes)' == 'true' ">
-		<Exec Command="git rev-parse HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" WorkingDirectory="$(MSBuildProjectDirectory)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+	<Target Name="SetAssemblyVersion" AfterTargets="DetectGitRepo" BeforeTargets="BeforeBuild;CoreGenerateAssemblyInfo" Condition=" '$(GenerateVersionCodeCustom)' == 'true' Or '$(GenerateCoreAttributeTypes)' == 'true' ">
+		<Exec Command="git rev-parse HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" WorkingDirectory="$(MSBuildProjectDirectory)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(FoundGit)' == 'true' ">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitHash" />
 		</Exec>
-		<Exec Command="git name-rev --name-only HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" WorkingDirectory="$(MSBuildProjectDirectory)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+		<Exec Command="git name-rev --name-only HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" WorkingDirectory="$(MSBuildProjectDirectory)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(FoundGit)' == 'true' ">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranchOutput" />
 		</Exec>
-		<CreateProperty Value="$(GitBranchOutput.Split(`~`)[0])" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
-			<Output TaskParameter="Value" PropertyName="GitBranchTrimmed1" />
-		</CreateProperty>
-		<CreateProperty Value="$(GitBranchTrimmed1.SubString(15))" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(GitBranchTrimmed1.Replace(`\`, `/`).StartsWith(`remotes/origin/`))' == 'true' ">
-			<Output TaskParameter="Value" PropertyName="GitBranchTrimmed2" />
-		</CreateProperty>
-		<CreateProperty Value="$(GitBranchTrimmed1)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(GitBranchTrimmed1.Replace(`\`, `/`).StartsWith(`remotes/origin/`))' == 'false' ">
-			<Output TaskParameter="Value" PropertyName="GitBranchTrimmed2" />
-		</CreateProperty>
-		<CreateProperty Value="$(GitBranchTrimmed2.Replace(`\`, `/`).Replace(`/`, `-`))" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
-			<Output TaskParameter="Value" PropertyName="GitBranch" />
-		</CreateProperty>
-		<CreateProperty Value="-$(VersionSuffix)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(VersionSuffix)' != '' ">
-			<Output TaskParameter="Value" PropertyName="VersionSuffixWithDash" />
-		</CreateProperty>
-		<CreateProperty Value="$(VersionPrefix)$(VersionSuffixWithDash)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
-			<Output TaskParameter="Value" PropertyName="Version" />
-		</CreateProperty>
-		<CreateProperty Value="$(Version)" Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
-			<Output TaskParameter="Value" PropertyName="PackageVersion" />
-		</CreateProperty>
-		<CreateProperty Value="global::" Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(MSBuildProjectExtension)' == '.csproj' ">
-			<Output TaskParameter="Value" PropertyName="AssemblyVersionIdentifierV1AttributeTypePrefix" />
-		</CreateProperty>
-		<CreateProperty Value="Global." Condition=" '$(GenerateVersionCodeCustom)' == 'true' And '$(MSBuildProjectExtension)' == '.vbproj' ">
-			<Output TaskParameter="Value" PropertyName="AssemblyVersionIdentifierV1AttributeTypePrefix" />
-		</CreateProperty>
+		<PropertyGroup Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
+			<GitBranch Condition=" '$(FoundGit)' != 'true' "></GitBranch>
+			<GitBranch>$(GitBranchOutput.Split(`~`)[0])</GitBranch>
+			<GitBranch Condition=" '$(GitBranch.Replace(`\`, `/`).StartsWith(`remotes/origin/`))' == 'true' ">$(GitBranch.SubString(15))</GitBranch>
+			<GitBranch>$(GitBranch.Replace(`\`, `/`).Replace(`/`, `-`))</GitBranch>
+			<VersionSuffixWithDash Condition=" '$(VersionSuffix)' != '' ">-$(VersionSuffix)</VersionSuffixWithDash>
+			<Version>$(VersionPrefix)$(VersionSuffixWithDash)</Version>
+			<PackageVersion>$(Version)</PackageVersion>
+			<AssemblyVersionIdentifierV1AttributeTypePrefix Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">global::</AssemblyVersionIdentifierV1AttributeTypePrefix>
+			<AssemblyVersionIdentifierV1AttributeTypePrefix Condition=" '$(MSBuildProjectExtension)' == '.vbproj' ">Global.</AssemblyVersionIdentifierV1AttributeTypePrefix>
+			<hamarb123ModuleInfoFile>$(IntermediateOutputPath)$(MSBuildProjectName).hamarb123ModuleInfo$(DefaultLanguageSourceExtension)</hamarb123ModuleInfoFile>
+			<PackageDescription Condition=" '$(FoundGit)' == 'true' And '$(PackageDescription)' != '' ">$(PackageDescription)%0A</PackageDescription>
+			<PackageDescription Condition=" '$(FoundGit)' == 'true' ">$(PackageDescription)Commit ID: $(GitBranch)%40$(GitHash).</PackageDescription>
+		</PropertyGroup>
 		<ItemGroup Condition=" '$(GenerateVersionCodeCustom)' == 'true' ">
 			<hamarb123ModuleAttribute Include="$(AssemblyVersionIdentifierV1AttributeType)hamarb123.Base.Attributes.AssemblyVersionIdentifierV1Attribute">
 				<_Parameter1>$(AssemblyTitle)</_Parameter1>
@@ -51,26 +50,14 @@
 			</hamarb123ModuleAttribute>
 		</ItemGroup>
 		<MakeDir Directories="$(IntermediateOutputPath)$(MSBuildProjectName)" Condition="!Exists('$(IntermediateOutputPath)$(MSBuildProjectName)')" />
-		<CreateProperty Value="$(IntermediateOutputPath)$(MSBuildProjectName).hamarb123ModuleInfo$(DefaultLanguageSourceExtension)">
-			<Output TaskParameter="Value" PropertyName="hamarb123ModuleInfoFile" />
-		</CreateProperty>
 		<WriteCodeFragment AssemblyAttributes="@(hamarb123ModuleAttribute)" Language="$(Language)" OutputFile="$(hamarb123ModuleInfoFile)">
 			<Output TaskParameter="OutputFile" ItemName="hamarb123ModuleInfoFileWrites" />
 		</WriteCodeFragment>
-		<CreateProperty Value="@(hamarb123ModuleInfoFileWrites, ';')" Condition=" '@(hamarb123ModuleInfoFileWrites)' != '' ">
-			<Output TaskParameter="Value" PropertyName="hamarb123ModuleInfoFile" />
-		</CreateProperty>
-		<CreateProperty Value="$(hamarb123ModuleInfoFile)">
-			<Output TaskParameter="Value" ItemName="Compile" />
-		</CreateProperty>
+		<ItemGroup>
+			<Compile Include="@(hamarb123ModuleInfoFileWrites)" />
+		</ItemGroup>
 		<Delete Files="$(hamarb123ModuleInfoFile)" Condition=" '@(hamarb123ModuleInfoFileWrites)' == '' And Exists('$(hamarb123ModuleInfoFile)') " />
 		<ReplaceAssemblyWithModule InputFilename="$(hamarb123ModuleInfoFile)" MSBuildProjectExtension="$(MSBuildProjectExtension)" GenerateVersionCodeCustom="$(GenerateVersionCodeCustom)" GenerateCoreAttributeTypes="$(GenerateCoreAttributeTypes)" GenerateCoreLicenseV1AttributeType="$(GenerateCoreLicenseV1AttributeType)" />
-		<CreateProperty Value="$(PackageDescription)%0A" Condition=" '$(PackageDescription)' != '' ">
-			<Output TaskParameter="Value" PropertyName="PackageDescription" />
-		</CreateProperty>
-		<CreateProperty Value="$(PackageDescription)Commit ID: $(GitBranch)%40$(GitHash).">
-			<Output TaskParameter="Value" PropertyName="PackageDescription" />
-		</CreateProperty>
 	</Target>
 
 	<!--Generate hamarb123.Core name-only version of specified attributes if requested-->

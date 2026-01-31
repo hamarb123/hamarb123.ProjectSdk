@@ -23,6 +23,9 @@
 		<CustomWarningsAsErrors Include="HAM0002" />
 		<CustomWarningsAsErrors Include="HAM0003" />
 		<CustomWarningsAsErrors Include="HAM0004" />
+		<CustomWarningsAsErrors Include="HAM0005" />
+		<CustomWarningsAsErrors Include="HAM0006" />
+		<CustomWarningsAsErrors Include="HAM0007" />
 	</ItemGroup>
 
 	<PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
@@ -44,7 +47,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="hamarb123.Analyzers" Version="1.2.2">
+		<PackageReference Include="hamarb123.Analyzers" Version="1.3.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
