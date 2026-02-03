@@ -1,7 +1,7 @@
 ﻿<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
 	<metadata>
 		<id>hamarb123.ProjectSdk</id>
-		<version>1.0.49</version>
+		<version>1.0.50</version>
 		<authors>hamarb123.ProjectSdk</authors>
 		<requireLicenseAcceptance>true</requireLicenseAcceptance>
 		<license type="expression">MIT</license>
