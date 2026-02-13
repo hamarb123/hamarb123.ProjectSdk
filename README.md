@@ -13,6 +13,7 @@ NuGet link:
 - 1.0.48 - Upgrade `hamarb123.Analyzers` to `1.2.2`, and C# version to 14
 - 1.0.49 - Upgrade `hamarb123.Analyzers` to `1.3.3`, and support non-git projects with default configuration
 - 1.0.50 - Upgrade `hamarb123.Analyzers` to `1.3.4`
+- 1.0.51 - Upgrade `hamarb123.Analyzers` to `1.3.5`
 
 # Build Instructions
 
