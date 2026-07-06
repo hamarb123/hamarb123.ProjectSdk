@@ -14,6 +14,7 @@ NuGet link:
 - 1.0.49 - Upgrade `hamarb123.Analyzers` to `1.3.3`, and support non-git projects with default configuration
 - 1.0.50 - Upgrade `hamarb123.Analyzers` to `1.3.4`
 - 1.0.51 - Upgrade `hamarb123.Analyzers` to `1.3.5`
+- 1.0.52 - Upgrade `hamarb123.Analyzers` to `1.3.7`
 
 # Build Instructions
 

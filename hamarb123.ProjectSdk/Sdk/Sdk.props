@@ -47,7 +47,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="hamarb123.Analyzers" Version="1.3.5">
+		<PackageReference Include="hamarb123.Analyzers" Version="1.3.7">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
