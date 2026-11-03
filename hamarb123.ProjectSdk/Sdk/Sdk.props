@@ -14,6 +14,10 @@
 		<GenerateVersionCodeCustom>true</GenerateVersionCodeCustom>
 		<GenerateCoreAttributeTypes>false</GenerateCoreAttributeTypes>
 		<GenerateCoreLicenseV1AttributeType>true</GenerateCoreLicenseV1AttributeType> <!--Only active when GenerateCoreAttributeTypes = true-->
+
+		<!--Ensure all built-in style analyzers actually run in command-line and IDE-->
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<OptimizeImplicitlyTriggeredBuild>false</OptimizeImplicitlyTriggeredBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,11 +30,13 @@
 		<CustomWarningsAsErrors Include="HAM0005" />
 		<CustomWarningsAsErrors Include="HAM0006" />
 		<CustomWarningsAsErrors Include="HAM0007" />
+		<CustomWarningsAsErrors Include="HAM0008" />
+		<CustomWarningsAsErrors Include="CS9193" /> <!--We include this since it's the built-in counterpart for HAM0008 for 'ref readonly' parameters-->
 	</ItemGroup>
 
 	<PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
 		<Nullable>disable</Nullable>
-		<LangVersion>14</LangVersion>
+		<LangVersion>15</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<NoWarn Condition=" $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp1.0')) ">$(NoWarn),0197</NoWarn>
 		<NoWarn>$(NoWarn),0628,1573,1591,8500</NoWarn>
@@ -47,7 +53,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="hamarb123.Analyzers" Version="1.3.7">
+		<PackageReference Include="hamarb123.Analyzers" Version="1.4.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
