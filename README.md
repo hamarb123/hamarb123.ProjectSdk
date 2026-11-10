@@ -15,7 +15,7 @@ NuGet link:
 - 1.0.50 - Upgrade `hamarb123.Analyzers` to `1.3.4`
 - 1.0.51 - Upgrade `hamarb123.Analyzers` to `1.3.5`
 - 1.0.52 - Upgrade `hamarb123.Analyzers` to `1.3.7`
-- 1.0.53 - Upgrade `hamarb123.Analyzers` to `1.4.0`, set not using `in` or `ref` on `in` and `ref readonly` parameters to be errors, ensure style analyzers always run, upgrade to C# 15, enable runtime-async by default in .NET 11 except for `net11.0-browser` (out-out is `CustomDisableRuntimeAsync`)
+- 1.0.54 - Upgrade `hamarb123.Analyzers` to `1.4.0`, set not using `in` or `ref` on `in` and `ref readonly` parameters to be errors, ensure style analyzers always run, upgrade to C# 15, enable runtime-async by default in .NET 11 except for `net11.0-browser` (out-out is `CustomDisableRuntimeAsync`)
 
 # Build Instructions
 

@@ -51,7 +51,6 @@
 		<RemoveIntegerChecks>true</RemoveIntegerChecks>
 		<CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
 		<Features>$(Features);strict</Features>
-		<Features Condition=" $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net12.0')) AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0-browser')) AND '$(CustomDisableRuntimeAsync)' != 'true' ">$(Features);runtime-async=on</Features>
 	</PropertyGroup>
 
 	<ItemGroup>
