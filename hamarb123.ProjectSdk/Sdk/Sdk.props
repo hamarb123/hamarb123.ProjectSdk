@@ -42,6 +42,7 @@
 		<NoWarn>$(NoWarn),0628,1573,1591,8500</NoWarn>
 		<Features>$(Features);strict</Features>
 		<CsWinRTAotOptimizerEnabled>OptIn</CsWinRTAotOptimizerEnabled> <!--Sets CsWinRT to opt-in mode by default-->
+		<Features Condition=" $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net12.0')) AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0-browser')) AND '$(CustomDisableRuntimeAsync)' != 'true' ">$(Features);runtime-async=on</Features>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.vbproj' ">
@@ -50,6 +51,7 @@
 		<RemoveIntegerChecks>true</RemoveIntegerChecks>
 		<CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
 		<Features>$(Features);strict</Features>
+		<Features Condition=" $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net12.0')) AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0-browser')) AND '$(CustomDisableRuntimeAsync)' != 'true' ">$(Features);runtime-async=on</Features>
 	</PropertyGroup>
 
 	<ItemGroup>
